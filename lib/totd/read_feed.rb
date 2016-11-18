@@ -5,8 +5,7 @@ require 'sanitize'
 
 class ReadFeed
   def initialize
-    @url = 'http://www.bbc.co.uk/programmes/b01s6xyk/episodes/downloads.rss'
-    read_rss
+    @url = 'http://www.bbc.co.uk/programmes/b01s6xyk/episodes/downloads.rss'.freeze
   end
 
   def tags
@@ -14,7 +13,9 @@ class ReadFeed
   end
 
   def scrub_desc(desc)
-    desc.gsub("Tweet of the Day is a series of fascinating stories about our British birds inspired by their calls and songs.\n\n",'')
+    desc.gsub!("Tweet of the Day is a series of fascinating stories about our British birds inspired by their calls and songs.\n\n",'')
+    desc.gsub!('Tweet of the Day is the voice of birds and our relationship with them, from around the world.','')
+    desc.strip
   end
 
   def fetch_rss
@@ -33,14 +34,22 @@ class ReadFeed
   def read_rss
     content = read_rss_file
     document = Oga.parse_xml(content)
-    parse_doc document
+    parse_doc(document)
   end
 
   def parse_doc doc
     @rss_articles = []
+    urls = []
+    doc.xpath('rss/channel/item').each do |x|
+      x.xpath('enclosure').each do |y|
+        urls << y.get('url')
+      end
+    end
+
     doc.xpath('rss/channel/item').each do |item|
       article = parse_tags(item)
-      article['description'] = scrub_desc(article['description'])
+      article[:description] = scrub_desc(article[:description])
+      article[:url] = urls.shift
       @rss_articles << article
     end
     @rss_articles
@@ -51,7 +60,7 @@ class ReadFeed
     article = {}
     tags.each do |name|
       temp = item.at_xpath(name).text
-      article[name] = Sanitize.clean(coder.decode(temp.force_encoding('utf-8')))
+      article[name.to_sym] = Sanitize.clean(coder.decode(temp.force_encoding('utf-8')))
     end
     article
   end
