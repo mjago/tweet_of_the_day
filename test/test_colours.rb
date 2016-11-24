@@ -57,6 +57,10 @@ class TestColours < MiniTest::Test
     assert @obj.list_colours[:ref].has_key? :active
   end
 
+  def test_list_colours_has_locals_sub_key_for_ref
+    assert @obj.list_colours[:ref].has_key? :local
+  end
+
   def test_responds_to_ref
     assert @obj.respond_to? :ref
   end
@@ -65,12 +69,7 @@ class TestColours < MiniTest::Test
     assert @obj.respond_to? :title
   end
 
-  def test_ref_is_equal_to_list_colours_ref_key
-    assert_equal @obj.ref, @obj.list_colours[:ref]
-  end
-
   def test_title_is_equal_to_list_colours_title_key
     assert_equal @obj.title, @obj.list_colours[:title]
   end
-
 end

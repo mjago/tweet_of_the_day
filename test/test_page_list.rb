@@ -12,8 +12,9 @@ class TestPageList < MiniTest::Test
 
   def page
     {
-      refs: 1..4,
-      titles: ['title_1', 'title_2', 'title_3', 'title_4'],
+      refs: [1, 2, 3, 4],
+      titles: ['title one', 'title two', 'title three', 'title four'],
+      locals: [true, false, true, false],
       selected: 2,
       active: 3,
       size: 4
@@ -49,6 +50,10 @@ class TestPageList < MiniTest::Test
     assert @pl.respond_to? :ref
   end
 
+  def test_responds_to_list_colours
+    assert @pl.respond_to? :list_colours
+  end
+
   def test_responds_to_title
     assert @pl.respond_to? :title
   end
@@ -65,9 +70,6 @@ class TestPageList < MiniTest::Test
   end
 
   def test_draw_returns_page_for_rendering
-    system 'clear'
-    p @pl.draw(@page)
+    assert_equal %Q{\e[0;32;49m1\e[0m \e[0;30;49mtitle one\e[0m\n\r\e[0;30;49m2\e[0m \e[0;30;49mtitle two\e[0m\n\r\e[0;32;49m3\e[0m \e[0;32;49mtitle three\e[0m\n\r\e[0;34;49m4\e[0m \e[0;34;49mtitle four\e[0m\n\r}, @pl.draw(@page)
   end
-
-
 end

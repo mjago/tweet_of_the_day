@@ -8,6 +8,8 @@ require 'pty'
 
 class TweetOfTheDay
 
+  include Colour
+
   ROOT            = File.expand_path '~/'
   HERE            = File.dirname(__FILE__)
   CONFIG_DIR      = '.tweet_of_the_day'.freeze
@@ -25,19 +27,18 @@ class TweetOfTheDay
     @feed = ReadFeed.new
     @content = String.new
     @programs = @feed.read_rss
+    @page_list = PageList.new
     mark_locals
     @selected = 0
     @titles_count = @programs.length
     sort_titles
     load_config
-#    STDIN.echo = false
-#    STDIN.raw!
     run
   end
 
   def mark_locals
     @programs.each_with_index do |prg, idx|
-      if have_locally?(prg[:title])
+      if local?(prg[:title])
         @programs[idx][:have_locally] = true
       else
         @programs[idx][:have_locally] = false
@@ -174,38 +175,23 @@ class TweetOfTheDay
 
   def draw_page
     clear_content
-    if @line_count <= @titles_count
-      @line_count.upto(@line_count + @page_height - 1) do |idx|
-        if idx < @titles_count
-          iot_print "> " if(idx == @selected) unless @config[:colour]
-          show_count_maybe idx
-          iot_puts @sorted_titles[idx], @selection_colour if (idx == @selected)
-          iot_puts @sorted_titles[idx], @text_colour   unless(idx == @selected)
-        end
-      end
-    else
-      @line_count = 0
-      0.upto(@page_height - 1) do |idx|
-        iot_print "> ", @selection_colour if(idx == @selected)
-        show_count_maybe(idx) unless @sorted_titles[idx].nil?
-        iot_puts @sorted_titles[idx], @text_colour unless @sorted_titles[idx].nil?
-      end
+    page = { refs: [], titles: [], locals: [] }
+    clear_content
+    @line_count.upto(@line_count + @page_height - 1) do |idx|
+      page[:refs] << idx + 1
+      page[:titles] << @sorted_titles[idx]
+      page[:locals] << local?(@sorted_titles[idx]) ? true : false
+      page[:active] = idx if @sorted_titles[idx] == @playing
     end
+    page[:selected] = @selected % @page_height
+    page[:size] = page[:refs].length
+    @content << @page_list.draw(page)
     @line_count += @page_height
     print_playing_maybe
     render
   end
 
-  def show_count_maybe idx
-    if have_locally?(@sorted_titles[idx])
-      iot_print idx_format(idx), @count_sel_colour if @config[:show_count]
-    else
-      iot_print idx_format(idx), @count_colour if @config[:show_count]
-    end
-    iot_print ' '
-  end
-
-  def have_locally? title
+  def local? title
     filename = filename_from_title(title)
     File.exist?(filename) ? true : false
   end
@@ -781,4 +767,7 @@ class TweetOfTheDay
     redraw
   end
 
+  def sort_key
+    sort_titles
+  end
 end

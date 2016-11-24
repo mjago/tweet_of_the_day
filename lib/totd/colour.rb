@@ -6,7 +6,8 @@ module Colour
         act_sel:  :red,
         selected: :green,
         active:   :blue,
-        default:  :black
+        default:  :black,
+        local:    :green
       },
       title:  {
         act_sel:  :red,

@@ -78,7 +78,7 @@ class KeyboardEvents
       when 'd', 'D'
         :download_key
       when 'f', 'F'
-        :forward
+        :forward_key
       when 'h', 'H'
         :help
       when 'i', 'I'
@@ -88,11 +88,11 @@ class KeyboardEvents
       when 'e', 'E'
         :enqueue
       when 'p', 'P', ' '
-        :pause
+        :pause_key
       when 'q', 'Q', "\u0003", "\u0004"
         :quit_key
       when 'r', 'R'
-        :rewind
+        :rewind_key
       when 's', 'S'
         :shuffle_key
       when 'n', 'N'

@@ -5,30 +5,14 @@
 # Selected,
 # Active
 
+require 'colorize'
+
 class PageList
 
   include Colour
 
   def initialize
     @buffer = String.new
-    @colours = default_colours
-  end
-
-  def default_colours
-    {
-      ref: {
-        act_sel:  :green,
-        selected: :red,
-        active:   :blue,
-        default:  :black
-      },
-      title:  {
-        act_sel:  :green,
-        selected: :red,
-        active:   :blue,
-        default:  :black
-      }
-    }
   end
 
   def draw page
@@ -36,20 +20,27 @@ class PageList
     buffer = String.new
     @page[:size].times do |id|
       buffer << format(:ref, id)
+      buffer << ' '
       buffer << format(:title, id)
+      buffer << "\n\r"
     end
     buffer
   end
 
+  private
+
   def format attr, id
-    colour = @colours[attr][select_format(id)]
-    colour.to_s
-#    colorize(attr, colour)
+    colour = list_colours[attr][select_format(attr, id)]
+    case attr
+    when :ref
+      @page[:refs][id].to_s.colorize(colour)
+    when :title
+      @page[:titles][id].colorize(colour)
+    end
   end
 
   def active_selected
-    @page[:selected] == @page[:active]
-    return @page[:selected]
+    return @page[:selected] if @page[:selected] == @page[:active]
     nil
   end
 
@@ -61,13 +52,19 @@ class PageList
     @page[:selected]
   end
 
-  def select_format id
-    case id
-    when active_selected then :act_sel
-    when selected then :selected
-    when active then :active
-    else
-      :default
-    end
+  def local id
+    @page[:locals][id]
+  end
+
+  def select_format attr, id
+    fmt = case id
+          when active_selected then :act_sel
+          when selected then :selected
+          when active then :active
+          else
+            :default
+          end
+    return :local if attr == :ref && local(id)
+    fmt
   end
 end
